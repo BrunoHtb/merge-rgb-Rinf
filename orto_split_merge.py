@@ -1,8 +1,21 @@
-import os, glob, ntpath, cv2, subprocess, shutil
-import tifffile as tifi
+import os, glob, ntpath, subprocess, sys
+from pathlib import Path
 
-APP_PATH = r"C:\Program Files\QGIS 3.32.0\OSGeo4W.bat"
-dir_path = r"D:\Ortofoto_teste_RGBN\Fortaleza_Bairro"
+diretorio_atual = Path(__file__).resolve().parent
+diretorio_pai = diretorio_atual / '..'
+caminho_arquivo = diretorio_pai / 'folder.txt'
+
+if caminho_arquivo.exists():
+    with open(caminho_arquivo, 'r') as arquivo:
+        conteudo_arquivo_diretorio_imagens = arquivo.readline().strip()
+        conteudo_arquivo_osgeo4w_bat = arquivo.readline().strip()
+else:
+    print(f'O arquivo {caminho_arquivo} não foi encontrado.')
+    input('Pressione Enter para continuar...')
+    sys.exit()
+
+APP_PATH = conteudo_arquivo_osgeo4w_bat
+dir_path = conteudo_arquivo_diretorio_imagens
 
 def filename_from_path(path):
     head, tail = ntpath.split(path)
@@ -46,7 +59,7 @@ if __name__ == "__main__":
         inf_img_path = value['INF']
 
         outpath = os.path.join(out_folder_result,key + ".tif")
-        runstrings = [
+        run_strings = [
             f'"{APP_PATH}" gdalbuildvrt r_rgb.vrt "{rgb_img_path}" -b 1',
             f'"{APP_PATH}" gdalbuildvrt g_rgb.vrt "{rgb_img_path}" -b 2',
             f'"{APP_PATH}" gdalbuildvrt b_rgb.vrt "{rgb_img_path}" -b 3',
@@ -54,7 +67,7 @@ if __name__ == "__main__":
             f'"{APP_PATH}" gdalbuildvrt -separate RGBNA.vrt r_rgb.vrt g_rgb.vrt b_rgb.vrt "{out_folder_result}" r_inf.vrt',
         ]
         
-        for command in runstrings:
+        for command in run_strings:
             try:
                 subprocess.run(command, shell=True, check=True)
                 print(f'Success: {command}')
@@ -69,10 +82,11 @@ if __name__ == "__main__":
         except:
             subprocess.run(runstring_final_img_alt, shell=True)  
 
-    tempfiles = ['r_rgb.vrt','g_rgb.vrt','b_rgb.vrt','r_inf.vrt','RGBNA.vrt']
-    for filename in tempfiles:
-        if os.path.isfile(filename):
-            os.remove(filename)
+    temp_files = ['r_rgb.vrt','g_rgb.vrt','b_rgb.vrt','r_inf.vrt','RGBNA.vrt']
+    for file_name in temp_files:
+        if os.path.isfile(file_name):
+            os.remove(file_name)
 
     print("Processo concluído.")
     input()
+    sys.exit()
